@@ -41,6 +41,7 @@ export const command = async () => {
             { id: "name", title: "Name" },
             { id: "mutationId", title: "ID" },
             { id: "sshUrlToRepo", title: "Repo Url" },
+            { id: "group", title: "Group Key" },
         ],
     });
 
@@ -65,6 +66,7 @@ export const command = async () => {
                 }
                 return node.name;
             })();
+
             const mutationId = (() => {
                 const base = node.webUrl.split("/").pop();
 
@@ -73,9 +75,14 @@ export const command = async () => {
                 }
                 return base;
             })();
+
+            const group = (() => {
+                return node.namespace.path;
+            })();
+
             records.push({
                 ...{ sshUrlToRepo: node.sshUrlToRepo },
-                ...{ name, mutationId },
+                ...{ name, mutationId, group },
             });
         });
 

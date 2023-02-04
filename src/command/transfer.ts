@@ -4,6 +4,7 @@ import CsvReadableStream from "csv-reader";
 import { createReadStream } from "fs";
 import { execSync } from "child_process";
 import chalk from "chalk";
+import { useLogger } from "../logger";
 
 const query = gql`
     mutation CreateRepository($input: CreateRepositoryInput!) {
@@ -13,50 +14,81 @@ const query = gql`
     }
 `;
 
-const commandRun = (command: string) => {
-    console.log(chalk.red(`$ ${command}`));
-    execSync(command);
-};
-
 export const command = async () => {
     const { client } = useApi();
+    const logger = useLogger();
     const dir = process.cwd();
+
+    const commandRun = (command: string) => {
+        logger.info(chalk.red(`$ ${command}`));
+        execSync(command);
+    };
 
     const inputStream = createReadStream(
         process.cwd() + "/project-list.csv",
         "utf-8"
     );
 
-    inputStream
-        .pipe(new CsvReadableStream({ trim: true }))
-        .on("data", async (row: string[]) => {
-            const [name, clientMutationId, url] = row;
+    const relations = process.env.GROUP_RELATION?.split(" ").map((data) => {
+        const [group, slug, org_id] = data.split(":");
+        return { group, slug, org_id };
+    });
+    if (!relations) {
+        return;
+    }
 
-            if (url === "Repo Url") {
-                return;
+    for await (const row of inputStream.pipe(
+        new CsvReadableStream({ trim: true })
+    )) {
+        const [name, clientMutationId, url, group] = row;
+
+        if (url === "Repo Url") {
+            continue;
+        }
+
+        const relation = (() => {
+            const relation = relations.find(
+                (relation) => relation.group === group
+            );
+
+            if (relation) {
+                return relation;
             }
 
-            console.log("------------------------------");
-            console.log(name);
-            console.log("------------------------------");
+            return relations.find((relation) => relation.group === "*");
+        })();
+        if (!relation) {
+            continue;
+        }
 
-            const data = await client.request(query, {
+        logger.info(name);
+        logger.info(`Target : ${relation.slug}`);
+
+        const data = await client
+            .request(query, {
                 input: {
                     clientMutationId,
                     name,
-                    ownerId: process.env.GITHUB_ORG_ID,
+                    ownerId: relation.org_id,
                     visibility: "PRIVATE",
                 },
+            })
+            .catch((e) => {
+                logger.error(e);
             });
-            console.log(
-                `Created repository : ${data.createRepository.clientMutationId}`
-            );
+        if (!data) {
+            continue;
+        }
 
-            commandRun(`cd ${dir}`);
-            commandRun(`rm -fr ${dir}/.repo`);
-            commandRun(`git clone --bare ${url} .repo`);
-            commandRun(
-                `cd ${dir}/.repo && git push --mirror ssh://git@github.com/${process.env.GITHUB_ORG}/${clientMutationId}.git`
-            );
-        });
+        logger.info(
+            `Created repository : ${data.createRepository.clientMutationId}`
+        );
+
+        commandRun(`cd ${dir}`);
+        commandRun(`rm -fr ${dir}/.repo`);
+        commandRun(`git clone --bare ${url} .repo`);
+        commandRun(
+            `cd ${dir}/.repo && git push --mirror ssh://git@github.com/${relation.slug}/${clientMutationId}.git`
+        );
+    }
 };

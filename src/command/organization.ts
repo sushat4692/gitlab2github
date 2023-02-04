@@ -10,11 +10,11 @@ const query = gql`
     }
 `;
 
-export const command = async () => {
+export const command = async (login: string) => {
     const { client } = useApi();
 
     const data = await client.request(query, {
-        login: process.env.GITHUB_ORG,
+        login,
     });
 
     console.log(data);

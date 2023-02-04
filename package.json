@@ -29,7 +29,8 @@
     "csv-writer": "^1.6.0",
     "dotenv": "^16.0.3",
     "figlet": "^1.5.2",
-    "graphql-request": "^5.1.0"
+    "graphql-request": "^5.1.0",
+    "pino": "^8.8.0"
   },
   "volta": {
     "node": "18.13.0"

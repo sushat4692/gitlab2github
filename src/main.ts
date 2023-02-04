@@ -23,6 +23,7 @@ program
 import { command as organizationCommand } from "./command/organization";
 program
     .command("organization")
+    .argument("<login>", "Organization login key")
     .description("Get detail organization information of GitHub")
     .action(organizationCommand);
 

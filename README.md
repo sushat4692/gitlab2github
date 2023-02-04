@@ -16,7 +16,7 @@ Install dependencies
 $ npm install
 ```
 
-Copy `.env.sample` to `.env`, and update values except for `GITHUB_ORG_ID`.
+Copy `.env.sample` to `.env`, and update values except for `GROUP_RELATION`.
 
 ```dotenv
 GITLAB_HOST=https://gitlab.com
@@ -25,19 +25,24 @@ GITLAB_TARGET_NAMESPACE=(GITLAB NAMESPACE)
 
 GITHUB_HOST=https://api.github.com
 GITHUB_TOKEN=(GITHUB TOKEN)
-GITHUB_ORG=(GIT HUB ORGANIZATION SLUG)
-GITHUB_ORG_ID=
+
+GROUP_RELATION=""
 ```
 
 Get GitHub organization detail information.
 
 ```bash
-$ npm run start -- organization
+$ npm run start -- organization (GIT HUB ORGANIZATION SLUG)
 
 { organization: { id: '****', name: 'Group Name' } }
 ```
 
-then, copy id to `GITHUB_ORG_ID`.
+then, copy id to `GROUP_RELATION` like this.  
+(Actually it's complicated syntax...)
+
+```dotenv
+GROUP_RELATION="(GITLAB NAMESPACE):(GITHUB ORGANIZATION NAME):(GITHUB ORGANIZATION ID)"
+```
 
 ### 2. Prepare transfer list
 
