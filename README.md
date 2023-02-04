@@ -16,7 +16,16 @@ Install dependencies
 $ npm install
 ```
 
-Copy `.env.sample` to `.env`, and update values except for `GROUP_RELATION`.
+Get GitHub organization detail information first.
+
+```bash
+$ npm run start -- organization (GIT HUB ORGANIZATION SLUG)
+
+{ organization: { id: '****', name: 'Group Name' } }
+```
+
+Copy `.env.sample` to `.env`, and update values. About `(GITHUB ORGANIZATION ID)`, copy from id from the above result.  
+(Actually it's complicated syntax...)
 
 ```dotenv
 GITLAB_HOST=https://gitlab.com
@@ -26,21 +35,6 @@ GITLAB_TARGET_NAMESPACE=(GITLAB NAMESPACE)
 GITHUB_HOST=https://api.github.com
 GITHUB_TOKEN=(GITHUB TOKEN)
 
-GROUP_RELATION=""
-```
-
-Get GitHub organization detail information.
-
-```bash
-$ npm run start -- organization (GIT HUB ORGANIZATION SLUG)
-
-{ organization: { id: '****', name: 'Group Name' } }
-```
-
-then, copy id to `GROUP_RELATION` like this.  
-(Actually it's complicated syntax...)
-
-```dotenv
 GROUP_RELATION="(GITLAB NAMESPACE):(GITHUB ORGANIZATION NAME):(GITHUB ORGANIZATION ID)"
 ```
 
