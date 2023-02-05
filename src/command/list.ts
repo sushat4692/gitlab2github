@@ -39,7 +39,6 @@ export const command = async () => {
         path: process.cwd() + "/project-list.csv",
         header: [
             { id: "name", title: "Name" },
-            { id: "mutationId", title: "ID" },
             { id: "sshUrlToRepo", title: "Repo Url" },
             { id: "group", title: "Group Key" },
         ],
@@ -50,6 +49,7 @@ export const command = async () => {
     let count = 0;
     let end: string | null = null;
     while (true) {
+        console.log(`Start : ${end}`);
         const data = await client.request(query, { after: end });
 
         data.projects.nodes.map((node) => {
@@ -61,13 +61,6 @@ export const command = async () => {
             }
 
             const name = (() => {
-                if (!checkNameSpace(node.namespace.path)) {
-                    return `[${node.namespace.name}] ${node.name}`;
-                }
-                return node.name;
-            })();
-
-            const mutationId = (() => {
                 const base = node.webUrl.split("/").pop();
 
                 if (!checkNameSpace(node.namespace.path)) {
@@ -82,10 +75,11 @@ export const command = async () => {
 
             records.push({
                 ...{ sshUrlToRepo: node.sshUrlToRepo },
-                ...{ name, mutationId, group },
+                ...{ name, group },
             });
         });
 
+        console.log(`Loaded ${count}`);
         if (!data.projects.pageInfo.hasNextPage || count > 100) {
             break;
         }

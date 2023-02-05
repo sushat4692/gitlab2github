@@ -46,7 +46,7 @@ When you run the following command, it will make `project-list.csv`.
 $ npm run start -- list
 ```
 
-If you want to change the repository name and url slut, you can change the above csv's `Name` and `ID` columns.
+If you want to change the repository name, you can change the above csv's `Name` column.
 
 ### 3. Transfer GitLab to GitHub
 

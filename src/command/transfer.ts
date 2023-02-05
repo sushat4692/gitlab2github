@@ -6,10 +6,12 @@ import { execSync } from "child_process";
 import chalk from "chalk";
 import { useLogger } from "../logger";
 
-const query = gql`
+const createQuery = gql`
     mutation CreateRepository($input: CreateRepositoryInput!) {
         createRepository(input: $input) {
-            clientMutationId
+            repository {
+                id
+            }
         }
     }
 `;
@@ -38,9 +40,9 @@ export const command = async () => {
     }
 
     for await (const row of inputStream.pipe(
-        new CsvReadableStream({ trim: true })
+        new CsvReadableStream({ trim: true, skipEmptyLines: true })
     )) {
-        const [name, clientMutationId, url, group] = row;
+        const [name, url, group] = row;
 
         if (url === "Repo Url") {
             continue;
@@ -64,10 +66,9 @@ export const command = async () => {
         logger.info(name);
         logger.info(`Target : ${relation.slug}`);
 
-        const data = await client
-            .request(query, {
+        const createData = await client
+            .request(createQuery, {
                 input: {
-                    clientMutationId,
                     name,
                     ownerId: relation.org_id,
                     visibility: "PRIVATE",
@@ -76,19 +77,19 @@ export const command = async () => {
             .catch((e) => {
                 logger.error(e);
             });
-        if (!data) {
+        if (!createData) {
             continue;
         }
 
         logger.info(
-            `Created repository : ${data.createRepository.clientMutationId}`
+            `Created repository : ${createData.createRepository.repository.id}`
         );
 
         commandRun(`cd ${dir}`);
         commandRun(`rm -fr ${dir}/.repo`);
         commandRun(`git clone --bare ${url} .repo`);
         commandRun(
-            `cd ${dir}/.repo && git push --mirror ssh://git@github.com/${relation.slug}/${clientMutationId}.git`
+            `cd ${dir}/.repo && git push --mirror ssh://git@github.com/${relation.slug}/${name}.git`
         );
     }
 };
